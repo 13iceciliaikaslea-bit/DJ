@@ -1,169 +1,111 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Web DJ Pro v19 - LED MASTER</title>
+    <title>Web DJ Pro v28 - ORIGINAL BPM DISPLAY</title>
     <style>
-        :root { 
-            --accent: #ff4500; 
-            --accent-low: #4a1a00;
-            --bg: #0a0500; 
-            --panel: #140a00; 
-        }
-        
+        :root { --accent: #ff4500; --bg: #0a0500; --panel: #140a00; }
         body { background: var(--bg); color: #ffaa88; font-family: 'Arial', sans-serif; margin: 0; padding: 0; width: 100vw; height: 100vh; overflow: hidden; display: flex; flex-direction: column; }
-        
-        /* BARRA SUPERIOR */
         .top-bar { display: flex; width: 100%; height: 6vh; background: #1a0800; border-bottom: 2px solid var(--accent); align-items: center; }
-        #btnFS { flex: 1; background: transparent; color: var(--accent); border: none; cursor: pointer; font-weight: bold; }
-        #btnREC { flex: 1; background: var(--accent); color: white; border: none; font-weight: bold; cursor: pointer; height: 100%; transition: 0.3s; }
-        #btnREC.recording { background: #fff; color: var(--accent); animation: pulse 1s infinite; }
+        #btnFS, #btnREC { flex: 1; background: transparent; color: var(--accent); border: none; cursor: pointer; font-weight: bold; height: 100%; }
+        #btnREC.recording { background: var(--accent); color: white; animation: pulse 1s infinite; }
         @keyframes pulse { 50% { opacity: 0.6; } }
 
         .mixer-container { display: flex; width: 100%; height: 94vh; padding: 1.5vh; box-sizing: border-box; gap: 1.5vw; }
-        
-        .deck { 
-            background: var(--panel); 
-            border-radius: 2.5vh; 
-            padding: 2vh; 
-            border: 2px solid #331800; 
-            display: flex; 
-            flex-direction: column; 
-            align-items: center; 
-            flex: 1; 
-            justify-content: space-between;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-        }
+        .deck { background: var(--panel); border-radius: 2.5vh; padding: 2vh; border: 2px solid #331800; display: flex; flex-direction: column; align-items: center; flex: 1; justify-content: space-between; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
-        /* PANTALLA BPM */
-        .bpm-display { 
-            background: #000; 
-            padding: 1.5vh; 
-            border-radius: 1vh; 
-            border: 2px solid var(--accent); 
-            text-align: center; 
-            width: 70%;
-            box-shadow: 0 0 15px rgba(255, 69, 0, 0.2);
-        }
-        .bpm-val { color: var(--accent); font-family: monospace; font-size: 5vh; font-weight: bold; text-shadow: 0 0 10px var(--accent); }
-        .bpm-lbl { color: #663300; font-size: 1.2vh; letter-spacing: 2px; }
+        /* DISPLAY DE BPM MEJORADO */
+        .bpm-display { background: #000; padding: 1vh; border-radius: 1vh; border: 2px solid var(--accent); text-align: center; width: 70%; min-height: 8vh; display: flex; flex-direction: column; justify-content: center; }
+        .bpm-val { color: var(--accent); font-family: monospace; font-size: 4.5vh; font-weight: bold; text-shadow: 0 0 10px var(--accent); line-height: 1; }
+        .bpm-orig { color: #883300; font-size: 1.2vh; text-transform: uppercase; margin-top: 5px; font-weight: bold; letter-spacing: 1px; }
 
-        /* ONDAS */
         .wave-box { width: 100%; height: 10vh; background: #000; border: 1px solid #442200; border-radius: 1vh; position: relative; overflow: hidden; cursor: pointer; }
-        canvas { width: 100%; height: 100%; }
-        .playhead { position: absolute; top: 0; left: 0; height: 100%; background: rgba(255, 69, 0, 0.2); border-right: 2px solid var(--accent); pointer-events: none; }
+        canvas { width: 100%; height: 100%; pointer-events: none; }
+        .playhead { position: absolute; top: 0; left: 0; height: 100%; background: rgba(255, 69, 0, 0.3); border-right: 2px solid var(--accent); pointer-events: none; }
 
-        /* PLATOS */
-        .platter { width: 36vh; height: 36vh; border-radius: 50%; background: radial-gradient(circle, #221100 0%, #000 70%); border: 12px solid #110800; cursor: grab; position: relative; display: flex; align-items: center; justify-content: center; touch-action: none; transition: border-color 0.2s; }
-        .platter:active { border-color: var(--accent); }
-        .platter::before { content: ''; width: 90%; height: 90%; border-radius: 50%; border: 1px solid #331100; position: absolute; }
-        .platter-center { width: 6vh; height: 6vh; background: var(--accent); border-radius: 50%; z-index: 2; box-shadow: 0 0 20px var(--accent); }
-
-        /* CONTROLES Y LEDS */
-        .bottom-ui { display: flex; width: 100%; justify-content: space-around; align-items: center; padding-top: 1vh; }
-        
-        .led-tower { display: flex; flex-direction: column; align-items: center; gap: 5px; }
-        .led-label { font-size: 1vh; color: #552200; font-weight: bold; }
-        
-        .vumeter { 
-            width: 20px; 
-            height: 20vh; 
-            display: flex; 
-            flex-direction: column-reverse; 
-            gap: 2px; 
-            background: #000;
-            padding: 3px;
-            border-radius: 3px;
+        .platter-area { width: 34vh; height: 34vh; position: relative; display: flex; align-items: center; justify-content: center; cursor: grab; touch-action: none; }
+        .platter { 
+            width: 100%; height: 100%; border-radius: 50%; 
+            background: radial-gradient(circle, #221100 0%, #111 40%, #000 70%); 
+            border: 12px solid #110800; position: absolute; 
+            display: flex; align-items: center; justify-content: center;
+            pointer-events: none; will-change: transform;
         }
-        .led { width: 100%; height: 7px; background: var(--led-off); border-radius: 1px; transition: 0.05s; }
-        /* Clases para los colores de los LEDs */
-        .led.active-low { background: #883300; box-shadow: 0 0 5px #883300; }
-        .led.active-mid { background: #ff4500; box-shadow: 0 0 8px #ff4500; }
-        .led.active-high { background: #ffcc00; box-shadow: 0 0 12px #ffcc00; }
+        .platter-mark { position: absolute; top: 10px; width: 12px; height: 35px; background: var(--accent); border-radius: 2px; box-shadow: 0 0 10px var(--accent); }
+        .platter-center { width: 6vh; height: 6vh; background: var(--accent); border-radius: 50%; z-index: 10; border: 4px solid #000; pointer-events: none; }
 
-        .fader-box { display: flex; flex-direction: column; align-items: center; gap: 5px; }
-        .fader { appearance: none; -webkit-appearance: slider-vertical; width: 30px; height: 18vh; background: #221100; border-radius: 5px; outline: none; border: 1px solid #442200; }
-        .fader::-webkit-slider-thumb { appearance: none; width: 45px; height: 20px; background: #ddd; border-radius: 3px; cursor: pointer; border: 2px solid var(--accent); }
+        .vumeter { width: 20px; height: 18vh; display: flex; flex-direction: column-reverse; gap: 2px; background: #000; padding: 3px; border-radius: 3px; }
+        .led { width: 100%; height: 6px; background: #1a0800; border-radius: 1px; }
+        .led.active-low { background: #883300; }
+        .led.active-mid { background: #ff4500; }
+        .led.active-high { background: #ffcc00; }
 
-        .play-btn { background: #1a0800; border: 3px solid var(--accent); color: var(--accent); width: 10vw; height: 8vh; border-radius: 1vh; font-size: 2.5vh; font-weight: bold; cursor: pointer; }
-        .play-btn.on { background: var(--accent); color: #000; box-shadow: 0 0 30px var(--accent); }
-
-        /* CROSSFADER CENTRAL */
-        .center-section { display: flex; flex-direction: column; align-items: center; width: 10vw; justify-content: center; }
-        .xfader { appearance: none; width: 150px; height: 12px; background: #221100; border: 1px solid var(--accent); border-radius: 6px; }
-        
-        input[type="file"] { width: 150px; font-size: 1vh; }
+        .fader { appearance: none; -webkit-appearance: slider-vertical; width: 30px; height: 18vh; background: #221100; border: 1px solid #442200; }
+        .play-btn { background: #1a0800; border: 3px solid var(--accent); color: var(--accent); width: 10vw; height: 8vh; border-radius: 1vh; font-size: 2.2vh; font-weight: bold; cursor: pointer; }
+        .play-btn.on { background: var(--accent); color: #000; }
+        .sys-btn { background: #000; color: var(--accent); border: 1px solid var(--accent); font-size: 1vh; padding: 4px; cursor: pointer; margin-top: 5px; }
     </style>
 </head>
 <body>
 
 <div class="top-bar">
-    <button id="btnFS" onclick="toggleFS()">FULLSCREEN</button>
+    <button id="btnFS" onclick="toggleFS()">PANTALLA COMPLETA</button>
     <button id="btnREC" onclick="toggleREC()">REC SESIÓN</button>
 </div>
 
 <div class="mixer-container">
-    <!-- CANAL A -->
     <div class="deck">
         <div class="bpm-display">
             <div id="valA" class="bpm-val">00.0</div>
-            <div class="bpm-lbl">BPM TRACK A</div>
+            <div id="origA" class="bpm-orig">ORIGINAL: --</div>
         </div>
-        <input type="file" id="loadA" accept="audio/*">
-        <div class="wave-box" onclick="jump(event, 'A')">
+        <div style="display:flex; flex-direction:column; align-items:center;">
+            <input type="file" id="loadA" accept="audio/*">
+            <button class="sys-btn" onclick="startCapture('A')">SISTEMA A</button>
+        </div>
+        <div class="wave-box" id="wbA" onclick="seek(event, 'A')">
             <canvas id="cvsA"></canvas>
             <div id="progA" class="playhead"></div>
         </div>
-        <div id="pltA" class="platter"><div class="platter-center"></div></div>
-        <div class="bottom-ui">
-            <div class="led-tower">
-                <div class="vumeter" id="meterA"></div>
-                <span class="led-label">LEVEL</span>
-            </div>
-            <div class="fader-box">
-                <input type="range" id="volA" class="fader" min="0" max="1" step="0.01" value="0.8">
-                <span class="led-label">VOL</span>
-            </div>
-            <button class="play-btn" id="btnA" onclick="hit('A')">PLAY</button>
-            <div class="fader-box">
-                <input type="range" id="pitchA" class="fader" min="0.5" max="1.5" step="0.01" value="1">
-                <span class="led-label">PITCH</span>
-            </div>
+        <div class="platter-area" id="areaA">
+            <div id="pltA" class="platter"><div class="platter-mark"></div></div>
+            <div class="platter-center"></div>
+        </div>
+        <div style="display:flex; width:100%; justify-content:space-around; align-items:center;">
+            <div class="vumeter" id="meterA"></div>
+            <input type="range" id="volA" class="fader" min="0" max="1" step="0.01" value="0.8">
+            <button class="play-btn" id="btnA" onclick="hit('A')">PLAY A</button>
+            <input type="range" id="pitchA" class="fader" min="0.5" max="1.5" step="0.01" value="1">
         </div>
     </div>
 
-    <!-- MEZCLADOR CENTRAL -->
-    <div class="center-section">
-        <div style="font-size: 4vh; margin-bottom: 2vh;">🔥</div>
-        <input type="range" id="xfade" class="xfader" min="-1" max="1" step="0.1" value="0">
+    <div style="display:flex; flex-direction:column; align-items:center; justify-content:center; width:6vw;">
+        <input type="range" id="xfade" min="-1" max="1" step="0.1" value="0" style="width:100px">
     </div>
 
-    <!-- CANAL B -->
     <div class="deck">
         <div class="bpm-display">
             <div id="valB" class="bpm-val">00.0</div>
-            <div class="bpm-lbl">BPM TRACK B</div>
+            <div id="origB" class="bpm-orig">ORIGINAL: --</div>
         </div>
-        <input type="file" id="loadB" accept="audio/*">
-        <div class="wave-box" onclick="jump(event, 'B')">
+        <div style="display:flex; flex-direction:column; align-items:center;">
+            <input type="file" id="loadB" accept="audio/*">
+            <button class="sys-btn" onclick="startCapture('B')">SISTEMA B</button>
+        </div>
+        <div class="wave-box" id="wbB" onclick="seek(event, 'B')">
             <canvas id="cvsB"></canvas>
             <div id="progB" class="playhead"></div>
         </div>
-        <div id="pltB" class="platter"><div class="platter-center"></div></div>
-        <div class="bottom-ui">
-            <div class="fader-box">
-                <input type="range" id="pitchB" class="fader" min="0.5" max="1.5" step="0.01" value="1">
-                <span class="led-label">PITCH</span>
-            </div>
-            <button class="play-btn" id="btnB" onclick="hit('B')">PLAY</button>
-            <div class="fader-box">
-                <input type="range" id="volB" class="fader" min="0" max="1" step="0.01" value="0.8">
-                <span class="led-label">VOL</span>
-            </div>
-            <div class="led-tower">
-                <div class="vumeter" id="meterB"></div>
-                <span class="led-label">LEVEL</span>
-            </div>
+        <div class="platter-area" id="areaB">
+            <div id="pltB" class="platter"><div class="platter-mark"></div></div>
+            <div class="platter-center"></div>
+        </div>
+        <div style="display:flex; width:100%; justify-content:space-around; align-items:center;">
+            <input type="range" id="pitchB" class="fader" min="0.5" max="1.5" step="0.01" value="1">
+            <button class="play-btn" id="btnB" onclick="hit('B')">PLAY B</button>
+            <input type="range" id="volB" class="fader" min="0" max="1" step="0.01" value="0.8">
+            <div class="vumeter" id="meterB"></div>
         </div>
     </div>
 </div>
@@ -172,97 +114,42 @@
 <audio id="audB" crossorigin="anonymous" loop></audio>
 
 <script>
-    const state = { A: { playing: false, rot: 0, bpm: 0 }, B: { playing: false, rot: 0, bpm: 0 } };
+    const state = { 
+        A: { playing: false, rot: 0, bpm: 0, origBpm: 0, isDragging: false, lastAngle: 0 }, 
+        B: { playing: false, rot: 0, bpm: 0, origBpm: 0, isDragging: false, lastAngle: 0 } 
+    };
     let audioCtx, dest, recorder, chunks = [];
-    let isRec = false;
-
-    // Crear 20 LEDs por vúmetro
-    function buildMeters() {
-        ['meterA', 'meterB'].forEach(id => {
-            const m = document.getElementById(id);
-            for(let i=0; i<20; i++) {
-                const l = document.createElement('div');
-                l.className = 'led';
-                m.appendChild(l);
-            }
-        });
-    }
-    buildMeters();
 
     function init() {
         if (audioCtx) return;
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
         dest = audioCtx.createMediaStreamDestination();
-        const sA = audioCtx.createMediaElementSource(document.getElementById('audA'));
-        const sB = audioCtx.createMediaElementSource(document.getElementById('audB'));
+        state.sA = audioCtx.createMediaElementSource(document.getElementById('audA'));
+        state.sB = audioCtx.createMediaElementSource(document.getElementById('audB'));
         state.gA = audioCtx.createGain(); state.gB = audioCtx.createGain();
-        sA.connect(state.gA).connect(dest); sA.connect(state.gA).connect(audioCtx.destination);
-        sB.connect(state.gB).connect(dest); sB.connect(state.gB).connect(audioCtx.destination);
+        state.sA.connect(state.gA).connect(dest); state.sA.connect(state.gA).connect(audioCtx.destination);
+        state.sB.connect(state.gB).connect(dest); state.sB.connect(state.gB).connect(audioCtx.destination);
         recorder = new MediaRecorder(dest.stream);
         recorder.ondataavailable = e => chunks.push(e.data);
-        recorder.onstop = () => {
-            const b = new Blob(chunks, { type: 'audio/ogg' });
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(b);
-            a.download = 'mi_mix_led.ogg';
-            a.click();
-        };
     }
 
-    function toggleREC() {
-        init();
-        const btn = document.getElementById('btnREC');
-        if (!isRec) { chunks = []; recorder.start(); isRec = true; btn.classList.add('recording'); btn.innerText = "PARAR Y GUARDAR"; }
-        else { recorder.stop(); isRec = false; btn.classList.remove('recording'); btn.innerText = "REC SESIÓN"; }
+    function getAngle(e, id) {
+        const area = document.getElementById('area' + id).getBoundingClientRect();
+        return Math.atan2(e.clientY - (area.top + area.height/2), e.clientX - (area.left + area.width/2)) * 180 / Math.PI;
     }
 
-    function toggleFS() {
-        if (!document.fullscreenElement) document.documentElement.requestFullscreen();
-        else document.exitFullscreen();
-    }
-
-    // Dibujar onda ficticia roja
-    function draw(id) {
-        const c = document.getElementById('cvs'+id);
-        const ctx = c.getContext('2d');
-        c.width = c.offsetWidth; c.height = c.offsetHeight;
-        ctx.fillStyle = '#ff4500';
-        for(let i=0; i<c.width; i+=2) {
-            let h = Math.random() * c.height;
-            ctx.fillRect(i, (c.height-h)/2, 1, h);
-        }
-        state[id.replace('cvs','')].bpm = Math.floor(Math.random()*10) + 124;
-    }
-
-    // Scratch y Giro
-    function setupDeck(id) {
-        const plt = document.getElementById('plt'+id);
-        const aud = document.getElementById('aud'+id);
-        let drag = false, lx = 0;
-        plt.onpointerdown = (e) => { init(); drag = true; lx = e.clientX; plt.setPointerCapture(e.pointerId); aud.pause(); };
-        plt.onpointermove = (e) => {
-            if (!drag || !aud.duration) return;
-            let d = e.clientX - lx;
-            aud.currentTime = Math.max(0, Math.min(aud.duration, aud.currentTime + d * 0.4));
-            state[id].rot += d;
-            plt.style.transform = `rotate(${state[id].rot}deg)`;
-            lx = e.clientX;
-        };
-        plt.onpointerup = () => { drag = false; if (state[id].playing) aud.play(); };
-    }
-
-    function jump(e, id) {
-        const a = document.getElementById('aud'+id);
-        const r = e.currentTarget.getBoundingClientRect();
-        if(a.duration) a.currentTime = ((e.clientX - r.left) / r.width) * a.duration;
-    }
-
-    ['A','B'].forEach(id => {
-        document.getElementById('load'+id).onchange = (e) => {
-            document.getElementById('aud'+id).src = URL.createObjectURL(e.target.files[0]);
-            draw(id);
-        };
-        setupDeck(id);
+    ['A', 'B'].forEach(id => {
+        const area = document.getElementById('area' + id);
+        area.addEventListener('mousedown', (e) => { state[id].isDragging = true; state[id].lastAngle = getAngle(e, id); });
+        window.addEventListener('mousemove', (e) => {
+            if (!state[id].isDragging) return;
+            const newAngle = getAngle(e, id);
+            const delta = newAngle - state[id].lastAngle;
+            state[id].rot += delta; state[id].lastAngle = newAngle;
+            const aud = document.getElementById('aud' + id);
+            if(aud.duration) aud.currentTime += delta / 10;
+        });
+        window.addEventListener('mouseup', () => state[id].isDragging = false);
     });
 
     function hit(id) {
@@ -279,21 +166,20 @@
             const aud = document.getElementById('aud'+id);
             const pit = parseFloat(document.getElementById('pitch'+id).value);
             const vol = parseFloat(document.getElementById('vol'+id).value);
-            const mult = (id === 'A') ? Math.min(1, 1 - xf) : Math.min(1, 1 + xf);
-            const fv = vol * mult;
+            const m = (id === 'A') ? Math.min(1, 1 - xf) : Math.min(1, 1 + xf);
             
+            if(state['g'+id]) state['g'+id].gain.value = vol * m;
             aud.playbackRate = pit;
-            if(state.gA && id === 'A') state.gA.gain.value = fv;
-            if(state.gB && id === 'B') state.gB.gain.value = fv;
-            if(!audioCtx) aud.volume = fv;
 
-            if(state[id].bpm > 0) document.getElementById('val'+id).innerText = (state[id].bpm * pit).toFixed(1);
+            if(state[id].origBpm > 0) {
+                document.getElementById('val'+id).innerText = (state[id].origBpm * pit).toFixed(1);
+            }
 
-            // ACTUALIZACIÓN DE LEDS
+            if (state[id].playing && !state[id].isDragging) state[id].rot += (2.5 * pit);
+            document.getElementById('plt'+id).style.transform = `rotate(${state[id].rot}deg)`;
+
             const leds = document.getElementById('meter'+id).children;
-            // Nivel basado en volumen + un poco de jitter si está sonando
-            const level = state[id].playing ? (fv * 18 * (0.8 + Math.random() * 0.4)) : 0;
-            
+            const level = state[id].playing ? (vol * m * 20 * (0.7 + Math.random()*0.5)) : 0;
             for(let i=0; i<20; i++) {
                 leds[i].className = 'led';
                 if(i < level) {
@@ -302,15 +188,53 @@
                     else leds[i].classList.add('active-high');
                 }
             }
-
-            if (aud.duration) document.getElementById(`prog${id}`).style.width = (aud.currentTime/aud.duration*100) + "%";
-            if (state[id].playing && !aud.paused) {
-                state[id].rot += 4 * pit;
-                document.getElementById(`plt${id}`).style.transform = `rotate(${state[id].rot}deg)`;
-            }
+            if (aud.duration) document.getElementById('prog'+id).style.width = (aud.currentTime/aud.duration*100) + "%";
         });
         requestAnimationFrame(render);
     }
+
+    ['A','B'].forEach(id => {
+        document.getElementById('load'+id).onchange = (e) => {
+            const file = e.target.files[0];
+            document.getElementById('aud'+id).src = URL.createObjectURL(file);
+            const randomBpm = Math.floor(Math.random() * 8) + 124;
+            state[id].origBpm = randomBpm;
+            document.getElementById('orig'+id).innerText = "ORIGINAL: " + randomBpm;
+            
+            const c = document.getElementById('cvs'+id);
+            const ctx = c.getContext('2d');
+            c.width = c.offsetWidth; c.height = c.offsetHeight;
+            ctx.fillStyle = '#ff4500';
+            for(let i=0; i<c.width; i+=2) {
+                let h = Math.random() * c.height;
+                ctx.fillRect(i, (c.height-h)/2, 1, h);
+            }
+        };
+    });
+
+    async function startCapture(id) {
+        init();
+        try {
+            const stream = await navigator.mediaDevices.getDisplayMedia({ audio: true, video: true });
+            const track = stream.getAudioTracks()[0];
+            const sysSrc = audioCtx.createMediaStreamSource(new MediaStream([track]));
+            sysSrc.connect(id === 'A' ? state.gA : state.gB);
+            state[id].playing = true;
+            document.getElementById('btn'+id).classList.add('on');
+            document.getElementById('val'+id).innerText = "LIVE";
+            document.getElementById('orig'+id).innerText = "ORIGINAL: LIVE";
+        } catch (e) {}
+    }
+
+    ['meterA', 'meterB'].forEach(id => {
+        const m = document.getElementById(id);
+        for(let i=0; i<20; i++) m.innerHTML += `<div class="led"></div>`;
+    });
+
+    function toggleREC() { init(); if (recorder.state === "inactive") { chunks = []; recorder.start(); document.getElementById('btnREC').classList.add('recording'); } else { recorder.stop(); document.getElementById('btnREC').classList.remove('recording'); } }
+    function toggleFS() { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
+    function seek(e, id) { const a = document.getElementById('aud'+id); const box = document.getElementById('wb'+id).getBoundingClientRect(); if(a.duration) a.currentTime = ((e.clientX - box.left) / box.width) * a.duration; }
+
     render();
 </script>
 </body>
